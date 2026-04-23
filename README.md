@@ -2,6 +2,10 @@
 
 Generate printable labels from CSV, Excel, or JSON data using Avery sheet formats.
 
+## Data Source
+
+Avery label specifications sourced from: https://gist.github.com/armadsen/5084458
+
 ## Install
 
 ```bash
