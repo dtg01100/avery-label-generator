@@ -1,0 +1,5 @@
+# Avery Label Generator Dependencies
+# pip install -r requirements.txt
+
+reportlab>=4.0.0
+openpyxl>=3.0.0
