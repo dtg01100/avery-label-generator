@@ -71,6 +71,16 @@ python avery_labels.py -i data.csv --mode repeat --field "Return Address" -o lab
 python avery_labels.py -i data.csv --field Name --field Phone --separator ", " -o labels.pdf
 ```
 
+## Web UI
+
+Run the web interface locally:
+
+```bash
+python app.py
+```
+
+Then open http://localhost:5000 in your browser.
+
 ## Label Formats
 
 | Format | Layout | Labels/Sheet |
