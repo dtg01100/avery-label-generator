@@ -10,6 +10,8 @@ Avery label specifications sourced from: https://gist.github.com/armadsen/508445
 
 ```bash
 pip install -r requirements.txt
+# or
+uv pip install -e .
 ```
 
 ## Quick Start
@@ -17,7 +19,7 @@ pip install -r requirements.txt
 ### Guided Mode (Interactive)
 
 ```bash
-python avery_labels.py -i data.xlsx
+avery-labels -i data.xlsx
 ```
 
 This will prompt you through:
@@ -30,19 +32,19 @@ This will prompt you through:
 
 ```bash
 # List available columns in your file
-python avery_labels.py -i data.xlsx --list
+avery-labels -i data.xlsx --list
 
 # List available Avery label formats
-python avery_labels.py --list-specs
+avery-labels --list-specs
 
 # Generate labels
-python avery_labels.py -i data.xlsx --field "Store Name" --field "Confirmation #" -o labels.pdf
+avery-labels -i data.xlsx --field "Store Name" --field "Confirmation #" -o labels.pdf
 ```
 
 ## Usage
 
 ```
-python avery_labels.py [options]
+avery-labels [options]
 
 Options:
   -i, --input FILE     Input file (CSV, XLSX, JSON)
@@ -59,16 +61,16 @@ Options:
 
 ```bash
 # Generate with two fields
-python avery_labels.py -i addresses.csv --field Name --field Address --field City -o labels.pdf
+avery-labels -i addresses.csv --field Name --field Address --field City -o labels.pdf
 
 # Use specific Avery format
-python avery_labels.py -i data.xlsx --spec 5160 --field "Company" -o labels.pdf
+avery-labels -i data.xlsx --spec 5160 --field "Company" -o labels.pdf
 
 # Repeat same label on all slots
-python avery_labels.py -i data.csv --mode repeat --field "Return Address" -o labels.pdf
+avery-labels -i data.csv --mode repeat --field "Return Address" -o labels.pdf
 
 # Custom separator (comma between fields)
-python avery_labels.py -i data.csv --field Name --field Phone --separator ", " -o labels.pdf
+avery-labels -i data.csv --field Name --field Phone --separator ", " -o labels.pdf
 ```
 
 ## Web UI
@@ -76,7 +78,7 @@ python avery_labels.py -i data.csv --field Name --field Phone --separator ", " -
 Run the web interface locally:
 
 ```bash
-python app.py
+avery-labels --nolaunch
 ```
 
 Then open http://localhost:5000 in your browser.
@@ -90,7 +92,7 @@ Then open http://localhost:5000 in your browser.
 | 5163 | 2×5 | 10 |
 | 5164 | 2×3 | 6 |
 
-Run `python avery_labels.py --list-specs` to see all 80+ available formats.
+Run `avery-labels --list-specs` to see all 80+ available formats.
 
 ## Input Data
 

@@ -4,14 +4,14 @@ Avery Label Generator - Interactive CLI
 Generate labels from CSV/Excel/JSON using Avery sheet specs
 
 Usage (guided mode):
-    python avery_labels.py -i data.xlsx
+    avery-labels -i data.xlsx
 
 Usage (arguments):
-    python avery_labels.py -i data.xlsx -o labels.pdf --spec 5960 -f "Store Name" -f "confirmation #"
-    
+    avery-labels -i data.xlsx -o labels.pdf --spec 5960 -f "Store Name" -f "confirmation #"
+
 List options:
-    python avery_labels.py --list-specs
-    python avery_labels.py -i data.xlsx --list
+    avery-labels --list-specs
+    avery-labels -i data.xlsx --list
 """
 
 import argparse
@@ -502,7 +502,7 @@ def main():
         print("="*50)
         print("  AVERY LABEL GENERATOR")
         print("="*50)
-        print("Usage: python avery_labels.py -i data.xlsx")
+        print("Usage: avery-labels -i data.xlsx")
         print("Run with -i to start guided mode or see --help for arguments")
         print("="*50)
         guided_mode()

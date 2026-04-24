@@ -1,3 +1,3 @@
 #!/bin/bash
-pip install -r requirements.txt
-python app.py
+uv pip install -e .
+avery-labels --nolaunch

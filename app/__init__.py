@@ -7,8 +7,6 @@ import tempfile
 import webbrowser
 from io import BytesIO
 
-sys.path.insert(0, os.path.dirname(__file__))
-
 from flask import Flask, render_template, request, send_file, jsonify
 from avery_labels import read_input, generate_labels, load_specs_from_csv, format_label_text
 

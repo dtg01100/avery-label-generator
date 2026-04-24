@@ -12,8 +12,8 @@ dependencies = [
 avery-labels = "app:main"
 
 [tool.setuptools]
-py-modules = ["app", "avery_labels"]
+packages = ["avery_labels", "app"]
 include-package-data = true
 
 [tool.setuptools.package-data]
-"*" = ["*.csv"]
+avery_labels = ["*.csv"]
