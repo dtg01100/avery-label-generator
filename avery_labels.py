@@ -45,7 +45,9 @@ SPECS_FILE = "avery_specs.csv"
 def load_specs_from_csv(csv_path: str = None) -> dict:
     """Load Avery specs from CSV file."""
     if csv_path is None:
-        csv_path = Path(__file__).parent / SPECS_FILE
+        pkg_path = Path(__file__).parent / SPECS_FILE
+        local_path = Path.cwd() / SPECS_FILE
+        csv_path = local_path if local_path.exists() else pkg_path
     
     specs = {}
     
