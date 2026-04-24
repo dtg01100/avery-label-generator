@@ -9,7 +9,8 @@ dependencies = [
 ]
 
 [project.scripts]
-avery-labels = "app:main"
+avery-labels = "avery_labels:main"
+avery-labels-web = "app:main"
 
 [tool.setuptools]
 packages = ["avery_labels", "app"]
@@ -17,3 +18,4 @@ include-package-data = true
 
 [tool.setuptools.package-data]
 avery_labels = ["*.csv"]
+app = ["templates/*", "static/*"]
