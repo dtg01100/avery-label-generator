@@ -3,6 +3,7 @@
 
 import os
 import tempfile
+from io import BytesIO
 from flask import Flask, render_template, request, send_file, jsonify
 from avery_labels import read_input, generate_labels, load_specs_from_csv, format_label_text
 
@@ -57,18 +58,25 @@ def generate():
                 return jsonify({"error": f"Unknown spec: {spec_name}"}), 400
 
             with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as out:
-                generate_labels(
-                    data=data,
-                    output=out.name,
-                    specs=specs[spec_name],
-                    fields=fields,
-                    mode=mode,
+                try:
+                    generate_labels(
+                        data=data,
+                        output=out.name,
+                        specs=specs[spec_name],
+                        fields=fields,
+                        mode=mode,
+                    )
+                    content = open(out.name, 'rb').read()
+                finally:
+                    os.unlink(out.name)
+                return send_file(
+                    BytesIO(content),
+                    download_name=output_name,
+                    as_attachment=True,
+                    mimetype='application/pdf'
                 )
-                return send_file(out.name, download_name=output_name, as_attachment=True)
         finally:
             os.unlink(tmp.name)
-
-    return jsonify({"error": "Generation failed"}), 500
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
