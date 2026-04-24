@@ -2,8 +2,13 @@
 """Flask web UI for Avery Label Generator."""
 
 import os
+import sys
 import tempfile
+import webbrowser
 from io import BytesIO
+
+sys.path.insert(0, os.path.dirname(__file__))
+
 from flask import Flask, render_template, request, send_file, jsonify
 from avery_labels import read_input, generate_labels, load_specs_from_csv, format_label_text
 
@@ -81,4 +86,17 @@ def generate():
             os.unlink(tmp.name)
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--nolaunch", action="store_true", help="Don't open browser automatically")
+    args = parser.parse_args()
+
+    host = "127.0.0.1"
+    port = 5000
+
+    if not args.nolaunch:
+        url = f"http://{host}:{port}"
+        print(f"Opening {url}")
+        webbrowser.open(url)
+
+    app.run(debug=False, host=host, port=port)

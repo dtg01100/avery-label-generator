@@ -1,0 +1,15 @@
+[project]
+name = "avery-labels"
+version = "0.1.0"
+requires-python = ">=3.8"
+dependencies = [
+    "flask>=3.0.0",
+    "openpyxl>=3.0.0",
+    "reportlab>=4.0.0",
+]
+
+[project.scripts]
+avery-labels = "app:main"
+
+[tool.setuptools]
+py-modules = ["app", "avery_labels"]
