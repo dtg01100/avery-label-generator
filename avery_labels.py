@@ -62,28 +62,34 @@ def load_specs_from_csv(csv_path: str = None) -> dict:
             
             spec_key = name.replace("Avery ", "").strip()
             
+            page_w = float(row.get("labelSheetWidth", 8.5)) * inch
+            page_h = float(row.get("labelSheetHeight", 11)) * inch
+            top_margin = float(row.get("topMargin", 0.5)) * inch
+            bottom_margin = float(row.get("bottomMargin", 0.5)) * inch
+            left_margin = float(row.get("leftMargin", 0.188)) * inch
+            right_margin = float(row.get("rightMargin", 0.188)) * inch
+            cols = int(row.get("numberOfColumns", 1))
+            r = int(row.get("numberOfRows", 1))
+            h_gap = float(row.get("horizontalGutter", 0)) * inch
+            v_gap = float(row.get("verticalGutter", 0)) * inch
+
+            available_w = page_w - left_margin - right_margin - (cols - 1) * h_gap
+            label_w = available_w / cols
+            available_h = page_h - top_margin - bottom_margin
+            label_h = available_h / r
+
             specs[spec_key] = {
-                "label_width": float(row.get("labelSheetWidth", 8.5)) * inch,
-                "label_height": (
-                    (float(row.get("labelSheetHeight", 11)) - 
-                     float(row.get("topMargin", 0.5)) - 
-                     float(row.get("bottomMargin", 0.5)))
-                    / float(row.get("numberOfRows", 10))
-                ) * inch,
-                "vertical_pitch": (
-                    (float(row.get("labelSheetHeight", 11)) - 
-                     float(row.get("topMargin", 0.5)) - 
-                     float(row.get("bottomMargin", 0.5)))
-                    / float(row.get("numberOfRows", 10))
-                ) * inch,
-                "columns": int(row.get("numberOfColumns", 3)),
-                "rows": int(row.get("numberOfRows", 10)),
-                "page_width": float(row.get("labelSheetWidth", 8.5)) * inch,
-                "page_height": float(row.get("labelSheetHeight", 11)) * inch,
-                "margin_left": float(row.get("leftMargin", 0.188)) * inch,
-                "margin_top": float(row.get("topMargin", 0.5)) * inch,
-                "h_gap": float(row.get("horizontalGutter", 0.125)) * inch,
-                "v_gap": float(row.get("verticalGutter", 0)) * inch,
+                "label_width": label_w,
+                "label_height": label_h,
+                "vertical_pitch": label_h + v_gap,
+                "columns": cols,
+                "rows": r,
+                "page_width": page_w,
+                "page_height": page_h,
+                "margin_left": left_margin,
+                "margin_top": top_margin,
+                "h_gap": h_gap,
+                "v_gap": v_gap,
             }
     
     return specs
@@ -266,21 +272,60 @@ def format_label_text(row: dict, fields: list[str], separator: str = "\n") -> st
     return separator.join(parts)
 
 
-def draw_label(c: canvas.Canvas, x: float, y: float, specs: dict, text: str, font_size: int = None):
+def calc_font_size(c: canvas.Canvas, text: str, max_width: float, max_height: float, font_name: str = DEFAULT_FONT) -> int:
+    """Calculate font size that fits text within max_width and max_height."""
+    min_size = 4
+    max_size = 144
+    lines = text.split("\n")
+    padding = 0.25 * inch
+
+    for size in range(max_size, min_size - 1, -1):
+        ok = True
+        for line in lines:
+            w = c.stringWidth(line, font_name, size)
+            if w > max_width - padding * 2:
+                ok = False
+                break
+        if ok:
+            total_h = len(lines) * size * 1.2
+            if total_h > max_height - padding:
+                ok = False
+        if ok:
+            return size
+    return min_size
+
+
+def find_uniform_font_size(c: canvas.Canvas, data: list[dict], fields: list[str], specs: dict, separator: str) -> int:
+    """Find smallest font size needed to fit all labels (largest outlier)."""
+    label_width = specs["label_width"]
+    label_height = specs["label_height"]
+    min_size = 144
+
+    for row_data in data:
+        text = format_label_text(row_data, fields, separator)
+        if text.strip():
+            size = calc_font_size(c, text, label_width, label_height)
+            if size < min_size:
+                min_size = size
+
+    return min_size
+
+
+def draw_label(c: canvas.Canvas, x: float, y: float, specs: dict, text: str, font_size: int):
     """Draw a single label at position (x, y) from bottom-left (PDF coords)."""
     width = specs["label_width"]
     height = specs["label_height"]
-    
+
     c.saveState()
-    c.setFont(DEFAULT_FONT, font_size or DEFAULT_FONT_SIZE)
-    
+    c.setFont(DEFAULT_FONT, font_size)
+
     lines = text.split("\n")
     text_y = y + height - 0.25 * inch
-    
+
     for line in lines:
         c.drawString(x + 0.125 * inch, text_y, line)
-        text_y -= (font_size or DEFAULT_FONT_SIZE) * 1.2
-    
+        text_y -= font_size * 1.2
+
     c.restoreState()
 
 
@@ -308,32 +353,42 @@ def generate_labels(
         if not data:
             print("ERROR: No data to repeat")
             sys.exit(1)
-        
-        label_text = format_label_text(data[0], fields, separator)
-        
-        for row_idx in range(rows):
-            for col_idx in range(columns):
-                x = margin_left + col_idx * (label_width + h_gap)
-                y = margin_top + (rows - 1 - row_idx) * vertical_pitch
-                draw_label(c, x, y, specs, label_text)
-        
+
+        font_size = find_uniform_font_size(c, data, fields, specs, separator)
+
+        page_idx = 0
+        while page_idx < len(data):
+            label_text = format_label_text(data[page_idx], fields, separator)
+
+            for row_idx in range(rows):
+                for col_idx in range(columns):
+                    x = margin_left + col_idx * (label_width + h_gap)
+                    y = margin_top + (rows - 1 - row_idx) * vertical_pitch
+                    draw_label(c, x, y, specs, label_text, font_size)
+
+            page_idx += 1
+            if page_idx < len(data):
+                c.showPage()
+
         c.save()
-        print(f"\nCreated {output} - repeated label ({columns * rows} per page)")
+        print(f"\nCreated {output} - repeated label ({len(data)} pages)")
         return
-    
+
+    font_size = find_uniform_font_size(c, data, fields, specs, separator)
+
     label_count = 0
     current_row = 0
     current_col = 0
-    
+
     for row_data in data:
         label_text = format_label_text(row_data, fields, separator)
         if not label_text.strip():
             continue
-        
+
         x = margin_left + current_col * (label_width + h_gap)
         y = margin_top + (rows - 1 - current_row) * vertical_pitch
-        
-        draw_label(c, x, y, specs, label_text)
+
+        draw_label(c, x, y, specs, label_text, font_size)
         label_count += 1
         
         current_col += 1
