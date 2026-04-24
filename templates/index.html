@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Avery Label Generator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Avery Label Generator</h1>
+        <form id="labelForm" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="file">Input File (CSV, XLSX, JSON)</label>
+                <input type="file" id="file" name="file" accept=".csv,.xlsx,.xls,.json" required>
+            </div>
+
+            <div class="form-group" id="fieldsGroup" style="display: none;">
+                <label>Fields to Include</label>
+                <div id="fieldsCheckboxes"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="spec">Label Format</label>
+                <select id="spec" name="spec">
+                    {% for spec in specs %}
+                    <option value="{{ spec }}" {% if spec == spec_default %}selected{% endif %}>{{ spec }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="mode">Mode</label>
+                <select id="mode" name="mode">
+                    <option value="unique">Unique (each row = one label)</option>
+                    <option value="repeat">Repeat (same label per page)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="output">Output Filename</label>
+                <input type="text" id="output" name="output" value="labels.pdf">
+            </div>
+
+            <button type="submit">Generate PDF</button>
+        </form>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById("file");
+        const fieldsGroup = document.getElementById("fieldsGroup");
+        const fieldsCheckboxes = document.getElementById("fieldsCheckboxes");
+
+        fileInput.addEventListener("change", async () => {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append("file", file);
+
+            try {
+                const res = await fetch("/upload", { method: "POST", body: formData });
+                const data = await res.json();
+
+                if (data.columns) {
+                    fieldsCheckboxes.innerHTML = data.columns.map(col =>
+                        `<label><input type="checkbox" name="fields" value="${col}">${col}</label>`
+                    ).join("");
+                    fieldsGroup.style.display = "block";
+                }
+            } catch (err) {
+                console.error("Upload failed:", err);
+            }
+        });
+
+        document.getElementById("labelForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+
+            try {
+                const res = await fetch("/generate", { method: "POST", body: formData });
+                if (res.ok) {
+                    const blob = await res.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = formData.get("output");
+                    a.click();
+                    URL.revokeObjectURL(url);
+                }
+            } catch (err) {
+                console.error("Generation failed:", err);
+            }
+        });
+    </script>
+</body>
+</html>
