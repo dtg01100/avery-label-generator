@@ -66,15 +66,17 @@ def generate():
                         fields=fields,
                         mode=mode,
                     )
-                    content = open(out.name, 'rb').read()
-                finally:
-                    os.unlink(out.name)
-                return send_file(
-                    BytesIO(content),
-                    download_name=output_name,
-                    as_attachment=True,
-                    mimetype='application/pdf'
-                )
+                except Exception as e:
+                    return jsonify({"error": str(e)}), 500
+                with open(out.name, 'rb') as f:
+                    content = f.read()
+                os.unlink(out.name)
+            return send_file(
+                BytesIO(content),
+                download_name=output_name,
+                as_attachment=True,
+                mimetype='application/pdf'
+            )
         finally:
             os.unlink(tmp.name)
 
