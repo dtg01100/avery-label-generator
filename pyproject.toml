@@ -13,3 +13,7 @@ avery-labels = "app:main"
 
 [tool.setuptools]
 py-modules = ["app", "avery_labels"]
+include-package-data = true
+
+[tool.setuptools.package-data]
+"*" = ["*.csv"]

@@ -85,7 +85,7 @@ def generate():
         finally:
             os.unlink(tmp.name)
 
-if __name__ == "__main__":
+def main():
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--nolaunch", action="store_true", help="Don't open browser automatically")
@@ -100,3 +100,7 @@ if __name__ == "__main__":
         webbrowser.open(url)
 
     app.run(debug=False, host=host, port=port)
+
+
+if __name__ == "__main__":
+    main()
